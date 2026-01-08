@@ -1,0 +1,51 @@
+@page "/events/{id:int}"
+@inject EventEaseApp.Services.EventService EventService
+@inject NavigationManager Nav
+@inject UserSession Session
+@inject AttendanceService Attendance
+
+
+<h3>Event Details</h3>
+
+@if (Session.IsRegistered)
+{
+    <button class="btn btn-outline-success"
+            @onclick="() => Attendance.MarkPresent(ev.Id, Session.UserEmail!)">
+        Mark Attendance
+    </button>
+}
+
+<p><b>Attendees:</b> @Attendance.Count(ev.Id)</p>
+
+@if (ev == null)
+{
+    <p>Event not found.</p>
+}
+else
+{
+    <h4>@ev.Name</h4>
+    <p><b>Date:</b> @ev.Date.ToString("dd MMM yyyy")</p>
+    <p><b>Location:</b> @ev.Location</p>
+    <p>@ev.Description</p>
+
+    <NavLink class="btn btn-primary" href="@($"/events/{ev.Id}/register")">Register</NavLink>
+    <button class="btn btn-secondary ms-2" @onclick="GoBack">Back</button>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+    private EventEaseApp.Models.Event? ev;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        ev = await EventService.GetEventByIdAsync(id);
+        if (ev == null)
+            Nav.NavigateTo("/notfound");
+    }
+
+
+    void GoBack()
+    {
+        Nav.NavigateTo("/events");
+    }
+}

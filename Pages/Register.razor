@@ -1,0 +1,45 @@
+@page "/events/{id:int}/register"
+@using System.ComponentModel.DataAnnotations
+@inject EventService EventService
+@inject UserSession Session
+
+@inject RegistrationService RegService
+@inject NavigationManager Nav
+
+<h3>Register for Event</h3>
+
+@if (ev == null)
+{
+    <p>Event not found.</p>
+}
+else
+{
+    <EditForm Model="model" OnValidSubmit="Submit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <InputText class="form-control mb-2" placeholder="Name" @bind-Value="model.Name" />
+        <InputText class="form-control mb-2" placeholder="Email" @bind-Value="model.Email" />
+
+        <button class="btn btn-success">Register</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+    private Event? ev;
+    private Registration model = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        ev = await EventService.GetEventByIdAsync(id);
+        model.EventId = id;
+    }
+
+    void Submit()
+    {
+        Session.UserEmail = model.Email;
+        RegService.Register(model);
+        Nav.NavigateTo($"/events/{id}");
+    }
+}
